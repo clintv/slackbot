@@ -56,3 +56,16 @@ var HELP_TEXT = `
 slapp.message('help', ['mention', 'direct_message'], (msg) => {
   msg.say(HELP_TEXT)
 });
+
+
+// attach Slapp to express server
+var server = slapp.attachToExpress(express())
+
+// start http server
+server.listen(port, (err) => {
+  if (err) {
+    return console.error(err)
+  }
+
+  console.log(`Listening on port ${port}`)
+})
