@@ -1,22 +1,52 @@
-const Slapp = require('slapp')
-const ConvoStore = require('slapp-convo-beepboop')
-const Context = require('slapp-context-beepboop')
-
 var ping = require('net-ping');
-var express = require('express')
+var SlackBot = require('slackbots');
 
-var app = express()
+// create a bot
+var bot = new SlackBot({
+    token: 'xoxb-158083023233-XdX4ReySgso33MCTVt11Sir6', // Add a bot https://my.slack.com/services/new/bot and put the token
+    name: 'DevBot'
+});
 
-// use `PORT` env var on Beep Boop - default to 3000 locally
-var port = process.env.PORT || 3000
+// monitor for messages
+bot.on('message', function(message) {
 
-var slapp = Slapp({
-  // Beep Boop sets the SLACK_VERIFY_TOKEN env var
-  verify_token: process.env.SLACK_VERIFY_TOKEN,
-  convo_store: ConvoStore(),
-  context: Context()
-})
+  var response = '';
 
+  // if message is a user message
+  if(message.type !== 'message') {
+    return false;
+  }
+
+  // extract commands
+  switch(extractCommand(message.text)) {
+
+    // is it up? (ping!)
+    case 'ping':
+      response = pingAssets();
+      break;
+  }
+
+  if(response.length) {
+    bot.postMessage(message.channel, response);
+  }
+});
+
+/**
+ * search string from messages and identify a command, could use
+ * regex or accept multiple commands in the future for the same task.
+ * @param string
+ * @return string
+ */
+function extractCommand(string) {
+
+  var lowerCaseString = string.toLowerCase();
+
+  if(!(lowerCaseString.indexOf('isitup'))) {
+    return 'ping';
+  }
+
+  return false;
+}
 
 function pingAssets() {
 
@@ -26,46 +56,22 @@ function pingAssets() {
     'cdn3.whatculture.com': '104.25.240.108'
   };
 
+  var response = '';
+
   session = ping.createSession()
   for (var key in servers) {
 
-    session.pingHost(servers[key], function (error, target) {
+    response += session.pingHost(servers[key], function (error, target, response) {
 
       if (error) {
-        console.log(key + ' is down');
+        response = ":white_circle: " + key + " is down\n";
       } else {
-        console.log(key + ' is up');
+        response = ":black_circle: " + key + " is up\n";
       }
+
+      return response;
     });
   }
 
-  res.send('Boop!!')
+  return response;
 };
-
-
-var HELP_TEXT = `
-\`help\` - to see this message.
-\`is it up?\` - to see what is up and what is down.
-`;
-
-//*********************************************
-// Setup different handlers for messages
-//*********************************************
-
-// response to the user typing "help"
-slapp.message('help', ['mention', 'direct_message'], (msg) => {
-  msg.say(HELP_TEXT)
-});
-
-
-// attach Slapp to express server
-var server = slapp.attachToExpress(express())
-
-// start http server
-server.listen(port, (err) => {
-  if (err) {
-    return console.error(err)
-  }
-
-  console.log(`Listening on port ${port}`)
-})
