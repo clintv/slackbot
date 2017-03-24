@@ -3,7 +3,7 @@ var SlackBot = require('slackbots');
 
 // create a bot
 var bot = new SlackBot({
-    token: 'xoxb-158083023233-1Ump5FlIpViwytYZrbtEK3Bc', // Add a bot https://my.slack.com/services/new/bot and put the token
+    token: 'xoxb-158083023233-nKHkSysE7DfPMHpKHahqyxee', // Add a bot https://my.slack.com/services/new/bot and put the token
     name: 'DevBot'
 });
 
@@ -22,7 +22,11 @@ bot.on('message', function(message) {
 
     // is it up? (ping!)
     case 'ping':
-      response = pingAssets(message.channel);
+      pingAssets(message.channel);
+      break;
+
+    case 'report':
+      reportError(message);
       break;
   }
 
@@ -30,6 +34,33 @@ bot.on('message', function(message) {
     bot.postMessage(message.channel, response);
   }
 });
+
+/**
+ * begin report error form
+ */
+function reportError(message) {
+
+  var response = {
+    'text': 'Would you like to report a problem?',
+    'attachments': [
+      {
+        'attachment_type': 'default',
+        'actions': [
+          {
+            'value': 'Yes'
+          },
+          {
+            'value': 'No'
+          }
+        ]
+      }
+    ]
+  }
+
+  console.log(response);
+
+  bot.postMessage(message.user, response.stringify())
+}
 
 /**
  * search string from messages and identify a command, could use
@@ -45,6 +76,10 @@ function extractCommand(string) {
     return 'ping';
   }
 
+  if(!(lowerCaseString.indexOf('reporterror'))) {
+    return 'report';
+  }
+
   return false;
 }
 
@@ -53,7 +88,7 @@ function pingAssets(channelId) {
   // server addresses
   var servers = [
     'www.whatculture.com',
-    'create.whatculture.com',
+    // 'create.whatculture.com',
     'cdn3.whatculture.com'
   ]
 
