@@ -1,9 +1,9 @@
-var ping = require('net-ping');
+var ping = require('ping');
 var SlackBot = require('slackbots');
 
 // create a bot
 var bot = new SlackBot({
-    token: 'xoxb-158083023233-XdX4ReySgso33MCTVt11Sir6', // Add a bot https://my.slack.com/services/new/bot and put the token
+    token: 'xoxb-158083023233-1Ump5FlIpViwytYZrbtEK3Bc', // Add a bot https://my.slack.com/services/new/bot and put the token
     name: 'DevBot'
 });
 
@@ -22,7 +22,7 @@ bot.on('message', function(message) {
 
     // is it up? (ping!)
     case 'ping':
-      response = pingAssets();
+      response = pingAssets(message.channel);
       break;
   }
 
@@ -48,30 +48,33 @@ function extractCommand(string) {
   return false;
 }
 
-function pingAssets() {
+function pingAssets(channelId) {
 
   // server addresses
-  var servers = {
-    'whatculture.com': '91.238.165.49',
-    'cdn3.whatculture.com': '104.25.240.108'
-  };
+  var servers = [
+    'www.whatculture.com',
+    'create.whatculture.com',
+    'cdn3.whatculture.com'
+  ]
 
-  var response = '';
+  servers.forEach(function (host) {
 
-  session = ping.createSession()
-  for (var key in servers) {
+     var response = ''
 
-    response += session.pingHost(servers[key], function (error, target, response) {
+     !function outer(host) {
+      ping.sys.probe(host, function(isAlive){
+          if (isAlive) {
+            response = ':arrow_up_small: ' + host + ' is up\n'
+          } else {
+            response = ':arrow_down_small: ' + host + ' is down\n'
+          }
 
-      if (error) {
-        response = ":white_circle: " + key + " is down\n";
-      } else {
-        response = ":black_circle: " + key + " is up\n";
-      }
+          bot.postMessage(channelId, response);
+       }, {
+         timeout: 10
+       })
+     }(host)
+  })
 
-      return response;
-    });
-  }
-
-  return response;
-};
+  return true
+}
