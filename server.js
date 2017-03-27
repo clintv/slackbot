@@ -1,10 +1,11 @@
+var config = require('config');
 var ping = require('ping');
 var SlackBot = require('slackbots');
 
 // create a bot
 var bot = new SlackBot({
-    token: 'xoxb-158083023233-nKHkSysE7DfPMHpKHahqyxee', // Add a bot https://my.slack.com/services/new/bot and put the token
-    name: 'DevBot'
+  token: config.get('token'),
+  name:  config.get('name')
 });
 
 // monitor for messages

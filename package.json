@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/clintv/slackbot#readme",
   "dependencies": {
+    "config": "^1.25.1",
     "ping": "^0.2.2",
     "slackbots": "^1.0.2"
   }
